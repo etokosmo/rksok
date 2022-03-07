@@ -27,6 +27,7 @@ PROTOCOL = "РКСОК/1.0"
 
 
 def cut_request(message: str) -> str:
+    """Trim the message to remove unnecessary"""
     data, separator, trash = message.partition('\r\n\r\n')
     return data + separator
 
