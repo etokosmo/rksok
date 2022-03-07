@@ -26,6 +26,11 @@ PATTERN = rf'({RequestVerb.GET.value}|{RequestVerb.DELETE.value}|{RequestVerb.WR
 PROTOCOL = "РКСОК/1.0"
 
 
+def cut_request(message: str) -> str:
+    data, separator, trash = message.partition('\r\n\r\n')
+    return data + separator
+
+
 def check_valid_request(header: str) -> bool:
     """Checking the correctness of the request"""
     try:
@@ -39,6 +44,7 @@ def check_valid_request(header: str) -> bool:
 
 def processing_request(message: str, session: int):
     """Processing request"""
+    message = cut_request(message)
     data_message = message.rstrip().split('\r\n', maxsplit=1)
     header = data_message[0]
     if not check_valid_request(header):
