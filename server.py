@@ -23,6 +23,11 @@ async def handle_echo(reader, writer):
         data = 'НИПОНЯЛ РКСОК/1.0'.encode()
         writer.write(data)
         await writer.drain()
+    except AttributeError:
+        logger.debug(f'Session: {Logs.current_session_position}. AttributeError')
+        data = 'НИПОНЯЛ РКСОК/1.0'.encode()
+        writer.write(data)
+        await writer.drain()
     finally:
         logger.info(f'Session: {Logs.current_session_position}. Close the connection')
         writer.close()
