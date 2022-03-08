@@ -14,7 +14,7 @@ def request_to_server_check(message: str, session: int) -> Union[str, bool]:
         client_socket.send(message.encode())  # send message
         data = client_socket.recv(1024)  # receive response
         logger.info(f'Session: {session}. Response from server-check: {data.decode()!r}')
-        response_from_check_server = f'{data.decode()!r}'
+        response_from_check_server = data.decode()
         logger.info(f'Session: {session}. Close the connection with server-check')
         client_socket.close()  # close the connection
         return response_from_check_server
@@ -33,7 +33,7 @@ def start_request_to_server_check(message: str, session: int) -> Optional[str]:
     # response = asyncio.run(request_to_server_check(message, session))
     response = request_to_server_check(message, session)
     if response:
-        return response[1:-1]
+        return response
     return None
 
 

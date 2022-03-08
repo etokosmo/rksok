@@ -59,7 +59,7 @@ def processing_request(message: str, session: int):
     if response_from_server_check.split()[0] != ResponseStatus.POSSIBLE.value:
         logger.info(f'Session: {session}. Deny request from server.')
         logger.info(f'Session: {session}. Response: "{response_from_server_check}".')
-        return response_from_server_check.encode()
+        return f'{response_from_server_check}{END_OF_RESPONSE}'.encode()
     request_verb = header.split()[0]
     if request_verb == RequestVerb.WRITE.value:
         logger.info(f'Session: {session}. VERB: "{RequestVerb.WRITE.value}".')
