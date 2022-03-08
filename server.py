@@ -2,7 +2,9 @@ import asyncio
 from dataclasses import dataclass
 from data.processing_request import processing_request
 from loguru import logger
-from config import path_to_logs
+from config import path_to_logs, path_to_db
+import os
+import models.model
 logger.add(path_to_logs, level='DEBUG')
 
 

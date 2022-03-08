@@ -3,6 +3,13 @@ from sqlite3 import Error
 from typing import Optional
 from loguru import logger
 from config import path_to_db
+import os.path
+
+
+def check_not_table_in_db() -> bool:
+    if os.path.getsize(path_to_db) == 0:
+        return True
+    return False
 
 
 def _create_connection(path) -> sqlite3.Connection:
@@ -41,8 +48,8 @@ def _execute_read_query(connection, query, session: int):
         logger.debug(f"The error '{e}' occurred")
 
 
-def _create_database() -> None:
-    """Create DB"""
+def _create_table() -> None:
+    """Create table"""
     create_users_table = """
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +57,7 @@ def _create_database() -> None:
       phone_number TEXT
     );
     """
-    _execute_query(connection, create_users_table)
+    _execute_query(connection, create_users_table, session=0)
 
 
 def add_user_to_db(username: str, phone_number: str, session: int) -> bool:
@@ -92,6 +99,8 @@ def _update_user_phone_number(username: str, phone_number: str, session: int) ->
 
 
 connection = _create_connection(path_to_db)
+if check_not_table_in_db():
+    _create_table()
 
 
 def check_user_in_db(username: str, session: int) -> bool:
