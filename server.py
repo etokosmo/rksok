@@ -10,7 +10,7 @@ logger.add(path_to_logs, level='DEBUG')
 async def handle_echo(reader, writer):
     """Open connection - work with client - close connection"""
     try:
-        data = await asyncio.wait_for(get_request(reader), timeout=25)
+        data = await asyncio.wait_for(get_request(reader), timeout=60)
         message = data.decode()
         addr = writer.get_extra_info('peername')
         logger.info(f'Session: {Logs.current_session_position} from {addr!r}')

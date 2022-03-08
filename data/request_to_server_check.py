@@ -9,7 +9,7 @@ def request_to_server_check(message: str, session: int) -> Union[str, bool]:
     """Request to server-check"""
     server_address = ('vragi-vezde.to.digital', 51624)
     try:
-        client_socket = socket.create_connection(server_address, 20)  # connect to the server
+        client_socket = socket.create_connection(server_address, 40)  # connect to the server
         logger.info(f'Session: {session}. Send to server-check: {message!r}')
         client_socket.send(message.encode())  # send message
         data = client_socket.recv(1024)  # receive response
