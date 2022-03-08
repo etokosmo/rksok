@@ -22,7 +22,7 @@ class ResponseStatus(Enum):
     IMPOSSIBLE = "НИЛЬЗЯ"
 
 
-PATTERN = rf'({RequestVerb.GET.value}|{RequestVerb.DELETE.value}|{RequestVerb.WRITE.value})(.{{3,30}})(РКСОК\/1\.0)'
+PATTERN = rf'({RequestVerb.GET.value}|{RequestVerb.DELETE.value}|{RequestVerb.WRITE.value}) (.{{3,30}}) (РКСОК\/1\.0)'
 PROTOCOL = "РКСОК/1.0"
 
 
