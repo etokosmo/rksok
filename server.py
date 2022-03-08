@@ -2,9 +2,8 @@ import asyncio
 from dataclasses import dataclass
 from data.processing_request import processing_request
 from loguru import logger
-from config import path_to_logs, path_to_db
-import os
-import models.model
+from config import path_to_logs
+from data.processing_request import ResponseStatus, PROTOCOL, END_OF_RESPONSE
 logger.add(path_to_logs, level='DEBUG')
 
 
@@ -20,12 +19,12 @@ async def handle_echo(reader, writer):
         await writer.drain()
     except asyncio.TimeoutError:
         logger.debug(f'Session: {Logs.current_session_position}. Timeout or another error')
-        data = 'НИПОНЯЛ РКСОК/1.0'.encode()
+        data = f'{ResponseStatus.INCORRECT_REQUEST.value} {PROTOCOL}{END_OF_RESPONSE}'.encode()
         writer.write(data)
         await writer.drain()
     except AttributeError:
         logger.debug(f'Session: {Logs.current_session_position}. AttributeError')
-        data = 'НИПОНЯЛ РКСОК/1.0'.encode()
+        data = f'{ResponseStatus.INCORRECT_REQUEST.value} {PROTOCOL}{END_OF_RESPONSE}'.encode()
         writer.write(data)
         await writer.drain()
     finally:
