@@ -7,6 +7,7 @@ import os.path
 
 
 def check_not_table_in_db() -> bool:
+    """Checking if a table NOT exists in a database."""
     if os.path.getsize(path_to_db) == 0:
         return True
     return False
@@ -98,11 +99,6 @@ def _update_user_phone_number(username: str, phone_number: str, session: int) ->
     _execute_query(connection, update_user_description, session)
 
 
-connection = _create_connection(path_to_db)
-if check_not_table_in_db():
-    _create_table()
-
-
 def check_user_in_db(username: str, session: int) -> bool:
     """Check user in DB using username"""
     select_user = f"SELECT name from users WHERE name = '{username}'"
@@ -128,3 +124,8 @@ def delete_user_from_db(username: str, session: int) -> bool:
         _execute_query(connection, delete_comment, session)
         return True
     return False
+
+
+connection = _create_connection(path_to_db)
+if check_not_table_in_db():
+    _create_table()

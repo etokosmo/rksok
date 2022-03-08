@@ -44,7 +44,7 @@ def check_valid_request(header: str) -> bool:
         return False
 
 
-def processing_request(message: str, session: int):
+def processing_request(message: str, session: int) -> bytes:
     """Processing request"""
     message = cut_request(message)
     data_message = message.rstrip().split('\r\n', maxsplit=1)

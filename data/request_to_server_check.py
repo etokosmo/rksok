@@ -5,7 +5,8 @@ import socket
 from typing import Optional, Union
 
 
-def socket_receive(sock):
+def socket_receive(sock) -> Optional[bytes]:
+    """Reading data from socket"""
     msg = b''
     while True:
         chunk = sock.recv(1024)
@@ -17,7 +18,8 @@ def socket_receive(sock):
     return msg
 
 
-def socket_send(sock, msg):
+def socket_send(sock, msg) -> None:
+    """Send data to socket"""
     total_sent = 0
     while total_sent < len(msg):
         sent = sock.send(msg[total_sent:])
@@ -32,10 +34,8 @@ def request_to_server_check(message: str, session: int) -> Union[str, bool]:
     try:
         client_socket = socket.create_connection(server_address, 40)  # connect to the server
         logger.info(f'Session: {session}. Send to server-check: {message!r}')
-        socket_send(client_socket, message.encode())
-        # client_socket.send(message.encode())  # send message
-        data = socket_receive(client_socket)
-        # data = client_socket.recv(1024)  # receive response
+        socket_send(client_socket, message.encode()) # send message
+        data = socket_receive(client_socket) # receive response
         logger.info(f'Session: {session}. Response from server-check: {data.decode()!r}')
         response_from_check_server = data.decode()
         logger.info(f'Session: {session}. Close the connection with server-check')
@@ -45,10 +45,10 @@ def request_to_server_check(message: str, session: int) -> Union[str, bool]:
         logger.debug(f'Session: {session}. FAIL: server-check is down')
         return False
     except TimeoutError:
-        logger.debug(f'Session: {session}. FAIL: incorrect request to server-check')
+        logger.debug(f'Session: {session}. FAIL: incorrect request to server-check. TimeoutError')
         return False
     except RuntimeError:
-        logger.debug(f'Session: {session}. FAIL: incorrect request to server-check')
+        logger.debug(f'Session: {session}. FAIL: incorrect request to server-check. Runtime error')
         return False
 
 
