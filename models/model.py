@@ -2,18 +2,18 @@ import sqlite3
 from sqlite3 import Error
 from typing import Optional
 from loguru import logger
-from config import path_to_db
+from config import PATH_TO_DB
 import os.path
 
 
 def check_not_table_in_db() -> bool:
     """Checking if a table NOT exists in a database."""
-    if os.path.getsize(path_to_db) == 0:
+    if os.path.getsize(PATH_TO_DB) == 0:
         return True
     return False
 
 
-def _create_connection(path) -> sqlite3.Connection:
+def _create_connection(path: str) -> sqlite3.Connection:
     """Connection to SQLite DB"""
     connection = None
     try:
@@ -24,25 +24,31 @@ def _create_connection(path) -> sqlite3.Connection:
     return connection
 
 
-def _execute_query(connection, query, session: int) -> None:
+def _execute_query(connection: sqlite3.Connection, query: str, username: str, phone_number: str, session: int) -> None:
     """Request to DB (CREATE, INSERT, UPDATE, DELETE)"""
     logger.info(f'Session: {session}. Request to DB')
     cursor = connection.cursor()
     try:
-        cursor.execute(query)
+        if phone_number:
+            cursor.execute(query, (phone_number, username))
+        else:
+            cursor.execute(query, (username, ))
         connection.commit()
         logger.info(f'Query executed successfully')
     except Error as e:
         logger.debug(f"The error '{e}' occurred")
 
 
-def _execute_read_query(connection, query, session: int):
-    logger.info(f'Session: {session}. Request to DB')
+def _execute_read_query(connection: sqlite3.Connection, query: str, username: str, session: int) -> list:
     """Request to DB (Only SELECT)"""
+    logger.info(f'Session: {session}. Request to DB')
     cursor = connection.cursor()
     result = None
     try:
-        cursor.execute(query)
+        if username:
+            cursor.execute(query, (username,))
+        else:
+            cursor.execute(query)
         result = cursor.fetchall()
         return result
     except Error as e:
@@ -68,20 +74,20 @@ def add_user_to_db(username: str, phone_number: str, session: int) -> bool:
     else:
         add_user = f"""
         INSERT INTO
-          users (name, phone_number)
+          users (phone_number, name)
         VALUES
-          ('{username}', '{phone_number}')
+          (?, ?)
         ;
         """
-        _execute_query(connection, add_user, session)
+        _execute_query(connection, add_user, username, phone_number, session)
     return True
 
 
 def get_phone_number_from_db(username: str, session: int) -> Optional[str]:
     """Get phone_number using user"""
     if check_user_in_db(username, session):
-        select_user = f"SELECT phone_number from users WHERE name = '{username}'"
-        selected_user = _execute_read_query(connection, select_user, session)
+        select_user = f"SELECT phone_number from users WHERE name = ?"
+        selected_user = _execute_read_query(connection, select_user, username, session)
         return selected_user[0][0]
     return None
 
@@ -101,8 +107,8 @@ def _update_user_phone_number(username: str, phone_number: str, session: int) ->
 
 def check_user_in_db(username: str, session: int) -> bool:
     """Check user in DB using username"""
-    select_user = f"SELECT name from users WHERE name = '{username}'"
-    selected_user = _execute_read_query(connection, select_user, session)
+    select_user = "SELECT name from users WHERE name = ?"
+    selected_user = _execute_read_query(connection, select_user, username, session)
     if selected_user:
         logger.info(f'Session: {session}. SUCCESS: Check user in DB')
         return True
@@ -112,20 +118,20 @@ def check_user_in_db(username: str, session: int) -> bool:
 
 def get_users() -> list:
     """Return list of DB"""
-    select_user = f"SELECT * from users"
-    selected_user = _execute_read_query(connection, select_user, 0)
+    select_user = "SELECT * from users"
+    selected_user = _execute_read_query(connection, select_user, username="", session=0)
     return selected_user
 
 
 def delete_user_from_db(username: str, session: int) -> bool:
     """Delete user from DB using username"""
     if check_user_in_db(username, session):
-        delete_comment = f"DELETE FROM users WHERE name = '{username}'"
-        _execute_query(connection, delete_comment, session)
+        delete_comment = f"DELETE FROM users WHERE name = ?"
+        _execute_query(connection, delete_comment, username, phone_number='', session=session)
         return True
     return False
 
 
-connection = _create_connection(path_to_db)
+connection = _create_connection(PATH_TO_DB)
 if check_not_table_in_db():
     _create_table()

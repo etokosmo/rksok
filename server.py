@@ -1,61 +1,61 @@
 import asyncio
 from dataclasses import dataclass
-from data.processing_request import processing_request
+from data.processing_request import process_request
 from loguru import logger
-from config import path_to_logs
-from data.processing_request import ResponseStatus, PROTOCOL, END_OF_RESPONSE
-logger.add(path_to_logs, level='DEBUG')
+from config import PATH_TO_LOGS, ResponseStatus, PROTOCOL, END_OF_RESPONSE, SERVER_IP, SERVER_PORT
 
 
-async def handle_echo(reader, writer):
+async def rksok_server(reader: asyncio.streams.StreamReader, writer: asyncio.streams.StreamWriter):
     """Open connection - work with client - close connection"""
     try:
-        data = await asyncio.wait_for(get_request(reader), timeout=60)
+        data = await asyncio.wait_for(get_request(reader), timeout=20)
         message = data.decode()
         addr = writer.get_extra_info('peername')
-        logger.info(f'Session: {Logs.current_session_position} from {addr!r}')
-        response = processing_request(message, Logs.current_session_position)
+        logger.info(f'Session: {ClientNumber.current_client_number} from {addr!r}')
+        response = process_request(message, ClientNumber.current_client_number)
+        ClientNumber.current_client_number += 1
         writer.write(response)
         await writer.drain()
     except asyncio.TimeoutError:
-        logger.debug(f'Session: {Logs.current_session_position}. Timeout or another error')
+        logger.debug(f'Session: {ClientNumber.current_client_number}. Timeout or another error')
         data = f'{ResponseStatus.INCORRECT_REQUEST.value} {PROTOCOL}{END_OF_RESPONSE}'.encode()
         writer.write(data)
         await writer.drain()
     except AttributeError:
-        logger.debug(f'Session: {Logs.current_session_position}. AttributeError')
+        logger.debug(f'Session: {ClientNumber.current_client_number}. AttributeError')
         data = f'{ResponseStatus.INCORRECT_REQUEST.value} {PROTOCOL}{END_OF_RESPONSE}'.encode()
         writer.write(data)
         await writer.drain()
     finally:
-        logger.info(f'Session: {Logs.current_session_position}. Close the connection')
+        logger.info(f'Session: {ClientNumber.current_client_number}. Close the connection')
         writer.close()
-        Logs.current_session_position += 1
 
 
-async def get_request(reader):
+async def get_request(reader: asyncio.streams.StreamReader) -> bytes:
     """Get data from client"""
     data = b''
     while True:
         temp = await reader.read(1024)
         if not temp: break
         data += temp
-        if b'\r\n\r\n' in data:
+        if data.endswith(END_OF_RESPONSE.encode()):
             return data
 
 
 async def main():
     """Start server"""
     server = await asyncio.start_server(
-        handle_echo, '0.0.0.0', 8888)
+        rksok_server, SERVER_IP, SERVER_PORT)
     async with server:
         await server.serve_forever()
 
 
 @dataclass
-class Logs:
-    current_session_position: int = 1
+class ClientNumber:
+    current_client_number: int = 1
 
+
+logger.add(PATH_TO_LOGS, level='DEBUG')
 
 if __name__ == '__main__':
     try:
